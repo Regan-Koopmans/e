@@ -15,6 +15,7 @@ typedef struct {
     int cursor_x, cursor_y;
     int scroll_y;
     char *filename;
+    int in_multiline_comment;
 } Editor;
 
 Editor ed = {0};
@@ -150,13 +151,53 @@ void draw_line_with_syntax(int line_num, int screen_row) {
     char *line = ed.lines[line_num];
     int len = strlen(line);
     int col = 0;
+    int in_comment = 0;
+    
+    // Calculate comment state up to this line
+    for (int prev_line = 0; prev_line < line_num; prev_line++) {
+        char *prev = ed.lines[prev_line];
+        int prev_len = strlen(prev);
+        
+        for (int j = 0; j < prev_len; j++) {
+            if (in_comment) {
+                if (prev[j] == '*' && j + 1 < prev_len && prev[j + 1] == '/') {
+                    in_comment = 0;
+                    j++;
+                }
+            } else {
+                if (prev[j] == '/' && j + 1 < prev_len && prev[j + 1] == '/') {
+                    break; // Rest of line is comment
+                }
+                if (prev[j] == '/' && j + 1 < prev_len && prev[j + 1] == '*') {
+                    in_comment = 1;
+                    j++;
+                }
+            }
+        }
+    }
     
     move(screen_row, 0);
     
     for (int i = 0; i < len; i++) {
         char ch = line[i];
         
-        // Handle comments
+        // Check if we're in a multiline comment
+        if (in_comment) {
+            attron(COLOR_PAIR(3));
+            // Look for end of comment
+            if (ch == '*' && i + 1 < len && line[i + 1] == '/') {
+                addch(ch);
+                addch(line[i + 1]);
+                in_comment = 0;
+                attroff(COLOR_PAIR(3));
+                i++;
+                continue;
+            }
+            addch(ch);
+            continue;
+        }
+        
+        // Handle single-line comments
         if (ch == '/' && i + 1 < len && line[i + 1] == '/') {
             attron(COLOR_PAIR(3));
             addstr(line + i);
@@ -164,23 +205,13 @@ void draw_line_with_syntax(int line_num, int screen_row) {
             break;
         }
         
-        // Handle multi-line comments
+        // Handle start of multi-line comments
         if (ch == '/' && i + 1 < len && line[i + 1] == '*') {
             attron(COLOR_PAIR(3));
-            int j = i + 2;
             addch(ch);
             addch(line[i + 1]);
-            while (j < len - 1 && !(line[j] == '*' && line[j + 1] == '/')) {
-                addch(line[j]);
-                j++;
-            }
-            if (j < len - 1) {
-                addch(line[j]);
-                addch(line[j + 1]);
-                j++;
-            }
-            attroff(COLOR_PAIR(3));
-            i = j;
+            in_comment = 1;
+            i++;
             continue;
         }
         
