@@ -295,9 +295,8 @@ void draw_screen() {
 int main(int argc, char *argv[]) {
     init_editor();
     
-    if (argc > 1) {
-        load_file(argv[1]);
-    }
+    // If an argument is passed, attempt to load it as a file
+    if (argc > 1) { load_file(argv[1]); }
     
     draw_screen(); // Render the editor on startup
     
@@ -348,11 +347,9 @@ int main(int argc, char *argv[]) {
             ed.scroll_y = ed.cursor_y;
         } else if (ed.cursor_y >= ed.scroll_y + max_y - 1) {
             ed.scroll_y = ed.cursor_y - max_y + 2;
-        }
-        
+        }       
         draw_screen();
     }
-    
     cleanup();
     return 0;
 }
