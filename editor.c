@@ -74,9 +74,7 @@ void delete_char() {
             
             // Remove current line and shift remaining lines up
             free(curr_line);
-            for (int i = ed.cursor_y + 1; i < ed.num_lines - 1; i++) {
-                ed.lines[i] = ed.lines[i + 1];
-            }
+            for (int i = ed.cursor_y + 1; i < ed.num_lines - 1; i++) { ed.lines[i] = ed.lines[i + 1]; }
             ed.num_lines--;
         }
     }
@@ -139,9 +137,10 @@ int is_c_keyword(const char *word) {
         "auto", "break", "case", "char", "const", "continue", "default", "do",
         "double", "else", "enum", "extern", "float", "for", "goto", "if",
         "int", "long", "register", "return", "short", "signed", "sizeof", "static",
-        "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while"
-    };
-    for (int i = 0; i < 32; i++) {
+        "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while",
+        "null", "class", "var", "val", "try", "catch", "import"
+   };
+    for (int i = 0; i < 38; i++) {
         if (strcmp(word, keywords[i]) == 0) return 1;
     }
     return 0;
